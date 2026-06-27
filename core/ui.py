@@ -182,7 +182,7 @@ def inject_global_css() -> None:
             position:sticky;
             top:0;
             z-index:1;
-            background: linear-gradient(135deg, rgba(46,230,192,0.20), rgba(16,32,38,0.96));
+            background: linear-gradient(135deg, #132E2C, #101B26);
             color: var(--accent);
             text-align:center;
             padding:.7rem .85rem;
@@ -391,28 +391,33 @@ def render_html_table(
 
     headers_html = "".join(f"<th>{html_lib.escape(str(c))}</th>" for c in df.columns)
 
-    body_rows = []
-    for _, row in df.iterrows():
-        cells = []
-        for col in df.columns:
-            val = row[col]
-            if col in date_cols:
-                text = format_date_br(val)
-            elif col in int_cols:
-                text = "—" if pd.isna(val) else format_int_br(val)
-            elif col in float_cols:
-                text = "—" if pd.isna(val) else format_float_br(val)
-            elif pd.isna(val):
-                text = "—"
-            else:
-                text = html_lib.escape(str(val))
-            cells.append(f"<td>{text}</td>")
-        body_rows.append(f"<tr>{''.join(cells)}</tr>")
+    formatted_df = df.copy()
+
+    for col in formatted_df.columns:
+        if col in date_cols:
+            formatted_df[col] = formatted_df[col].apply(format_date_br)
+        elif col in int_cols:
+            formatted_df[col] = formatted_df[col].apply(lambda val: "—" if pd.isna(val) else format_int_br(val))
+        elif col in float_cols:
+            formatted_df[col] = formatted_df[col].apply(lambda val: "—" if pd.isna(val) else format_float_br(val))
+        else:
+            formatted_df[col] = formatted_df[col].apply(lambda val: "—" if pd.isna(val) else html_lib.escape(str(val)))
+
+    # Envolve cada célula com as tags <td> de forma vetorizada
+    for col in formatted_df.columns:
+        formatted_df[col] = "<td>" + formatted_df[col].astype(str) + "</td>"
+
+    # Junta todas as colunas de cada linha em uma string
+    row_strings = formatted_df.sum(axis=1)
+    
+    # Envolve cada linha com as tags <tr> e junta todas em uma única string HTML
+    body_rows = "<tr>" + row_strings + "</tr>"
+    body_html = "".join(body_rows)
 
     table_html = (
         f'<div class="polo-table-wrap" style="max-height:{max_height};">'
         f'<table class="polo-table"><thead><tr>{headers_html}</tr></thead>'
-        f'<tbody>{"".join(body_rows)}</tbody></table></div>'
+        f'<tbody>{body_html}</tbody></table></div>'
     )
     st.markdown(table_html, unsafe_allow_html=True)
 

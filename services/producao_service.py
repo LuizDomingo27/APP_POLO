@@ -24,9 +24,10 @@ WK_COL = "WK"
 
 
 @st.cache_data(show_spinner="Carregando Produção Diária...")
-def load_data(source: Union[Path, "st.runtime.uploaded_file_manager.UploadedFile"]) -> pd.DataFrame:
-    """Lê a planilha de Produção Diária - POLO (aba BD)."""
-    df = pd.read_excel(source, sheet_name=SHEET_NAME)
+def load_data() -> pd.DataFrame:
+    """Lê a tabela producao_diaria do SQLite."""
+    from core.database import load_table, TABLE_PROD
+    df = load_table(TABLE_PROD)
     df.columns = [str(c).replace("\xa0", " ").strip() for c in df.columns]
     df[OFICINA_COL] = utils.clean_text_series(df[OFICINA_COL])
     df[DATE_COL] = pd.to_datetime(df[DATE_COL], errors="coerce")
@@ -81,6 +82,32 @@ def render(df: Optional[pd.DataFrame]) -> None:
         .sort_values(ascending=False)
     )
     utils.plot_bar(pecas_por_oficina, title="Peças Produzidas por Oficina")
+
+    # Tabela de valores agrupados por oficina
+    st.markdown("<h5 style='font-family: Sora; color:var(--text-main); margin-top: 1.5rem; margin-bottom: 0.5rem;'>Resumo por Oficina</h5>", unsafe_allow_html=True)
+    oficina_summary = (
+        filtered.groupby(OFICINA_COL)
+        .agg(
+            Registros=(QTD_COL, "size"),
+            Pecas=(QTD_COL, "sum")
+        )
+        .sort_values(by="Pecas", ascending=False)
+        .reset_index()
+    )
+    
+    oficina_summary_table = oficina_summary.rename(
+        columns={
+            OFICINA_COL: "Oficina",
+            "Registros": "Ordens (Registros)",
+            "Pecas": "Total de Peças Produzidas",
+        }
+    )
+    
+    utils.render_html_table(
+        oficina_summary_table,
+        int_cols=["Total de Peças Produzidas", "Ordens (Registros)"],
+        max_height="250px",
+    )
 
     filtered_dated = filtered.dropna(subset=[DATE_COL])
     if not filtered_dated.empty:

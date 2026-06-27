@@ -20,9 +20,10 @@ QTD_COL = "REAL CORTADO"
 
 
 @st.cache_data(show_spinner="Carregando RECEBIMENTO...")
-def load_polo_data(source: Union[Path, "st.runtime.uploaded_file_manager.UploadedFile"]) -> pd.DataFrame:
-    """Lê a planilha RECEBIMENTO e filtra apenas MP = POLO."""
-    df = pd.read_excel(source, sheet_name=SHEET_NAME)
+def load_polo_data() -> pd.DataFrame:
+    """Lê a tabela recebimento do SQLite e filtra apenas MP = POLO."""
+    from core.database import load_table, TABLE_RECEB
+    df = load_table(TABLE_RECEB, filter_query="UPPER(TRIM(MP)) = 'POLO'")
     df[OFICINA_COL] = utils.clean_text_series(df[OFICINA_COL])
     df[ORDEM_COL] = df[ORDEM_COL].astype(str).str.strip()
     df = utils.filter_mp_polo(df, mp_col="MP")
@@ -82,6 +83,35 @@ def render(df: Optional[pd.DataFrame]) -> None:
         .sort_values(ascending=False)
     )
     utils.plot_bar(pecas_por_oficina, title="Peças Recebidas por Oficina")
+
+    # Tabela de valores agrupados por oficina
+    st.markdown("<h5 style='font-family: Sora; color:var(--text-main); margin-top: 1.5rem; margin-bottom: 0.5rem;'>Resumo por Oficina</h5>", unsafe_allow_html=True)
+    oficina_summary = (
+        filtered.groupby(OFICINA_COL)
+        .agg(
+            Ordens=(ORDEM_COL, "nunique"),
+            Pecas=(QTD_COL, "sum"),
+            Minutos=(MINUTOS_COL, "sum")
+        )
+        .sort_values(by="Pecas", ascending=False)
+        .reset_index()
+    )
+    
+    oficina_summary_table = oficina_summary.rename(
+        columns={
+            OFICINA_COL: "Oficina",
+            "Ordens": "Ordens Recebidas",
+            "Pecas": "Total de Peças Recebidas",
+            "Minutos": "Total de Minutos",
+        }
+    )
+    
+    utils.render_html_table(
+        oficina_summary_table,
+        int_cols=["Total de Peças Recebidas", "Ordens Recebidas"],
+        float_cols=["Total de Minutos"],
+        max_height="250px",
+    )
 
     filtered_dated = filtered.dropna(subset=[DATE_COL])
     if not filtered_dated.empty:
