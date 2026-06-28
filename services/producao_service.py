@@ -36,11 +36,11 @@ def load_data() -> pd.DataFrame:
 
 def render(df: Optional[pd.DataFrame]) -> None:
     utils.section_title(
-        "🏭 Produção Diária — Oficinas POLO",
-        "Origem: planilha 'Produção Diária - POLO'. Dados já exclusivos de MP = POLO. "
-        "Esta aba não exibe total de minutos, apenas ordens (registros) e peças.",
+        "🏭 Produção Diária — Oficinas POLO"
     )
 
+    st.divider()
+    
     if df is None:
         st.info("Carregue o arquivo **Produção Diária - POLO.xlsx** na barra lateral para visualizar esta aba.")
         return
@@ -81,10 +81,23 @@ def render(df: Optional[pd.DataFrame]) -> None:
         .sum()
         .sort_values(ascending=False)
     )
-    utils.plot_bar(pecas_por_oficina, title="Peças Produzidas por Oficina")
+    
+    st.markdown("<br/>", unsafe_allow_html=True)
+    utils.section_divider("Produção por Oficina")
+    utils.plot_bar(pecas_por_oficina)
+
+    utils.section_divider("Produção Diária ao Longo do Tempo")
+    filtered_dated = filtered.dropna(subset=[DATE_COL])
+    if not filtered_dated.empty:
+        daily = (
+            filtered_dated.groupby(DATE_COL, as_index=True)[QTD_COL]
+            .sum()
+            .sort_index()
+        )
+        utils.plot_line(daily)
 
     # Tabela de valores agrupados por oficina
-    st.markdown("<h5 style='font-family: Sora; color:var(--text-main); margin-top: 1.5rem; margin-bottom: 0.5rem;'>Resumo por Oficina</h5>", unsafe_allow_html=True)
+    utils.section_divider("Resumo Por Oficinas")
     oficina_summary = (
         filtered.groupby(OFICINA_COL)
         .agg(
@@ -109,14 +122,7 @@ def render(df: Optional[pd.DataFrame]) -> None:
         max_height="250px",
     )
 
-    filtered_dated = filtered.dropna(subset=[DATE_COL])
-    if not filtered_dated.empty:
-        daily = (
-            filtered_dated.groupby(DATE_COL, as_index=True)[QTD_COL]
-            .sum()
-            .sort_index()
-        )
-        utils.plot_line(daily, title="Produção Diária (Total)")
+    st.markdown("---", unsafe_allow_html=True)
 
     utils.section_divider("Detalhamento da Produção")
     show_cols = [OFICINA_COL, DATE_COL, QTD_COL, WK_COL]

@@ -231,4 +231,4 @@ def plot_line(series: pd.Series, title: str = "", color: str = "#2EE6C0", ma_win
         f"]"
         f"}};"
     )
-    _cv1.html(_echarts_wrap(body), height=318, scrolling=False)
+    _cv1.html(_echarts_wrap(body), height=418, scrolling=False)

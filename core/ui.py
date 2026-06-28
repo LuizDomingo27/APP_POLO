@@ -321,7 +321,7 @@ def inject_global_css() -> None:
 # --------------------------------------------------------------------------- #
 # Componentes de página
 # --------------------------------------------------------------------------- #
-def app_header(title: str, subtitle: str, badge: Optional[str] = None) -> None:
+def app_header(title: str, subtitle: Optional[str]="", badge: Optional[str] = None) -> None:
     badge_html = f'<span class="badge">{badge}</span>' if badge else ""
     st.markdown(
         f"""

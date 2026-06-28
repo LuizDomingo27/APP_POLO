@@ -35,8 +35,9 @@ def load_polo_data() -> pd.DataFrame:
 def render(df: Optional[pd.DataFrame]) -> None:
     utils.section_title(
         "📦 A Receber — Pedidos POLO em andamento",
-        "Origem: planilha ACOMPANHAMENTO · filtrado para MP = POLO. Filtro de período aplicado sobre a Data de Envio.",
     )
+
+    st.divider()
 
     if df is None:
         st.info("Carregue o arquivo **ACOMPANHAMENTO.xlsx** na barra lateral para visualizar esta aba.")
@@ -74,15 +75,27 @@ def render(df: Optional[pd.DataFrame]) -> None:
     with c3:
         utils.kpi_card("Ordens a Receber", str(total_ordens))
 
+    utils.section_divider("Peças Por Oficinas")
     pecas_por_oficina = (
         filtered.groupby(OFICINA_COL, as_index=True)[QTD_COL]
         .sum()
         .sort_values(ascending=False)
     )
-    utils.plot_bar(pecas_por_oficina, title="Peças por Oficina")
+    utils.plot_bar(pecas_por_oficina)
+
+
+    utils.section_divider("Peças ao Longo do Tempo")
+    filtered_dated = filtered.dropna(subset=[DATE_COL])
+    if not filtered_dated.empty:
+        pecas_por_data = (
+            filtered_dated.groupby(DATE_COL)[QTD_COL]
+            .sum()
+            .sort_index()
+        )
+        utils.plot_line(pecas_por_data)
 
     # Tabela de valores agrupados por oficina
-    st.markdown("<h5 style='font-family: Sora; color:var(--text-main); margin-top: 1.5rem; margin-bottom: 0.5rem;'>Resumo por Oficina</h5>", unsafe_allow_html=True)
+    utils.section_divider("Resumo Por Oficinas")
     oficina_summary = (
         filtered.groupby(OFICINA_COL)
         .agg(
@@ -109,16 +122,9 @@ def render(df: Optional[pd.DataFrame]) -> None:
         float_cols=["Total de Minutos"],
         max_height="250px",
     )
-
-    filtered_dated = filtered.dropna(subset=[DATE_COL])
-    if not filtered_dated.empty:
-        pecas_por_data = (
-            filtered_dated.groupby(DATE_COL)[QTD_COL]
-            .sum()
-            .sort_index()
-        )
-        utils.plot_line(pecas_por_data, title="Peças ao Longo do Tempo (Data de Envio)")
-
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+        
     utils.section_divider("Detalhamento dos Pedidos")
     show_cols = [ORDEM_COL, OFICINA_COL, DATE_COL, SECONDARY_DATE_COL, QTD_COL, MINUTOS_COL]
     table = filtered[show_cols].sort_values(DATE_COL, na_position="last").rename(

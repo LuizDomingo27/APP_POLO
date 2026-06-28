@@ -34,9 +34,10 @@ def load_polo_data() -> pd.DataFrame:
 def render(df: Optional[pd.DataFrame]) -> None:
     utils.section_title(
         "✅ Recebido — Pedidos POLO já recebidos",
-        "Origem: planilha RECEBIMENTO · filtrado para MP = POLO. Filtro de período aplicado sobre a Data de Recebimento (DIA).",
     )
-
+    
+    st.divider()
+    
     if df is None:
         st.info("Carregue o arquivo **RECEBIMENTO.xlsx** na barra lateral para visualizar esta aba.")
         return
@@ -77,15 +78,29 @@ def render(df: Optional[pd.DataFrame]) -> None:
             help_text="Ordens distintas (pode haver recebimento parcial em mais de uma data)",
         )
 
+    st.markdown("<br/>",unsafe_allow_html=True)
+    utils.section_divider("Peças Recebidas por Oficina")
     pecas_por_oficina = (
         filtered.groupby(OFICINA_COL, as_index=True)[QTD_COL]
         .sum()
         .sort_values(ascending=False)
     )
-    utils.plot_bar(pecas_por_oficina, title="Peças Recebidas por Oficina")
+    utils.plot_bar(pecas_por_oficina)
+
+    st.markdown("<br/>",unsafe_allow_html=True)
+    utils.section_divider("Recebimento por Dia")
+    filtered_dated = filtered.dropna(subset=[DATE_COL])
+    if not filtered_dated.empty:
+        daily = (
+            filtered_dated.groupby(DATE_COL, as_index=True)[QTD_COL]
+            .sum()
+            .sort_index()
+        )
+        utils.plot_line(daily)
+
+    utils.section_divider("Resumo por Oficina")
 
     # Tabela de valores agrupados por oficina
-    st.markdown("<h5 style='font-family: Sora; color:var(--text-main); margin-top: 1.5rem; margin-bottom: 0.5rem;'>Resumo por Oficina</h5>", unsafe_allow_html=True)
     oficina_summary = (
         filtered.groupby(OFICINA_COL)
         .agg(
@@ -113,15 +128,7 @@ def render(df: Optional[pd.DataFrame]) -> None:
         max_height="250px",
     )
 
-    filtered_dated = filtered.dropna(subset=[DATE_COL])
-    if not filtered_dated.empty:
-        daily = (
-            filtered_dated.groupby(DATE_COL, as_index=True)[QTD_COL]
-            .sum()
-            .sort_index()
-        )
-        utils.plot_line(daily, title="Recebimento por Dia")
-
+    st.markdown("<br/>", unsafe_allow_html=True)
     utils.section_divider("Detalhamento dos Recebimentos")
     show_cols = [ORDEM_COL, OFICINA_COL, DATE_COL, QTD_COL, MINUTOS_COL]
     table = filtered[show_cols].sort_values(DATE_COL, na_position="last").rename(
@@ -139,7 +146,8 @@ def render(df: Optional[pd.DataFrame]) -> None:
         int_cols=["Peças (Real Cortado)"],
         float_cols=["Minutos"],
     )
-
+    
+    st.markdown("<br/>", unsafe_allow_html=True)
     utils.download_button(
         table,
         "recebimento_polo.xlsx",

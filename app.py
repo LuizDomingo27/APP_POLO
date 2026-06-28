@@ -16,13 +16,14 @@ from core.database import (
     TABLE_RECEB,
     TABLE_PROD
 )
+
 from services import acompanhamento_service as acomp_svc
 from services import recebimento_service as receb_svc
 from services import producao_service as prod_svc
 
 st.set_page_config(
-    page_title="POLO • Painel de Acompanhamento",
-    page_icon="🧵",
+    page_title="Acompanhamento POLO",
+    page_icon=":material/settings:",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -38,10 +39,10 @@ PROD_COLS = ["OFICINA", "DATA", "QUANTIDADE DE PEÇAS PRODUZIDA", "WK"]
 # Sidebar — Navegação e Informações do Banco
 # --------------------------------------------------------------------------- #
 with st.sidebar:
-    st.markdown("### 🧭 Menu")
+    st.markdown("### :material/menu: Navegação")
     page = st.radio(
         "Navegar para:",
-        ["📊 Painel de Acompanhamento", "📤 Carregar Dados (Planilhas)"],
+        ["Painel de Acompanhamento", "📤 Carregar Dados (Planilhas)"],
         index=0
     )
     
@@ -59,11 +60,10 @@ with st.sidebar:
 # --------------------------------------------------------------------------- #
 # Renderização da Página Ativa
 # --------------------------------------------------------------------------- #
-if page == "📊 Painel de Acompanhamento":
+if page == "Painel de Acompanhamento":
     utils.app_header(
-        "🧵 Painel POLO",
-        "Acompanhamento consolidado de matéria-prima POLO — pedidos a receber, recebidos e produção diária das oficinas.",
-        badge="Fonte: SQLite Database",
+        "Acompanhamento POLO",
+        badge="Pedidos a receber, recebidos e produção diária das oficinas.",
     )
     
     # Carregamento de dados a partir do SQLite (com cache do Streamlit)
@@ -84,25 +84,10 @@ if page == "📊 Painel de Acompanhamento":
 
 elif page == "📤 Carregar Dados (Planilhas)":
     utils.app_header(
-        "📤 Carregar & Sincronizar",
-        "Faça upload das planilhas Excel para atualizar as tabelas do banco SQLite e sincronizar no GitHub.",
-        badge="Mapeamento com Chaves Únicas",
+        "Carregar & Sincronizar",
+        badge="Faça upload das planilhas Excel para atualizar as tabelas do banco de dados.",
     )
-    
-    st.markdown(
-        """
-        <div style="background-color: var(--surface); padding: 1.2rem; border-radius: var(--radius-md); border: 1px solid rgba(46,230,192,0.1); margin-bottom: 1.5rem;">
-            <h4 style="margin-top: 0; color: var(--accent); font-family: 'Sora', sans-serif;">Como funciona a atualização?</h4>
-            <p style="font-size: 0.9rem; margin-bottom: 0;">
-                Escolha o arquivo Excel correspondente e defina a estratégia:
-                <br>• <b>Atualizar/Mesclar (Upsert)</b>: Utiliza a instrução <code>REPLACE</code> do SQLite baseando-se nas chaves únicas (como ORDEM MESTRE e DIA) para atualizar registros que mudaram e inserir novas linhas sem gerar duplicatas.
-                <br>• <b>Substituir Tudo (Replace)</b>: Limpa a tabela correspondente e carrega apenas os dados presentes no arquivo enviado.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
+            
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -137,7 +122,7 @@ elif page == "📤 Carregar Dados (Planilhas)":
         
     st.markdown("---")
     
-    if st.button("🚀 Processar Uploads & Sincronizar com GitHub", type="primary", use_container_width=True):
+    if st.button("🚀 Processar Uploads", type="primary", use_container_width=True):
         uploads = [
             ("A Receber (Acompanhamento)", acomp_file, TABLE_ACOMP, ACOMP_COLS, acomp_mode, "ACOMPANHAMENTO"),
             ("Recebido (Recebimento)", receb_file, TABLE_RECEB, RECEB_COLS, receb_mode, "RECEBIMENTO"),
