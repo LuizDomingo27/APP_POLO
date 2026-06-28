@@ -135,7 +135,7 @@ def apply_filters(
                 min_value=min_d,
                 max_value=max_d,
                 key=f"{key_prefix}_date",
-                format="dd/mm/yyyy"
+                format="dd/mm/yyyy",
             )
         else:
             date_range = None
