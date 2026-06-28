@@ -48,7 +48,6 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### 💾 Banco de Dados")
-    st.caption("Tecnologia: **SQLite (Dataset/polo.db)**")
     
     if st.button("🔄 Limpar Cache / Atualizar", use_container_width=True):
         st.cache_data.clear()
