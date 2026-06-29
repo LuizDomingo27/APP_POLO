@@ -127,7 +127,10 @@ def save_df_to_db(table_name: str, df: pd.DataFrame, mode: str = "replace") -> N
         if mode == "replace":
             # Apagar dados atuais da tabela antes de inserir
             cursor.execute(f'DELETE FROM "{table_name}"')
-            query = f'INSERT INTO "{table_name}" ({col_names}) VALUES ({placeholders})'
+            # Usar INSERT OR REPLACE para tolerar linhas duplicadas dentro do
+            # próprio arquivo enviado (mesma chave primária aparecendo mais de
+            # uma vez). Sem isso, a segunda duplicata viola a PRIMARY KEY.
+            query = f'INSERT OR REPLACE INTO "{table_name}" ({col_names}) VALUES ({placeholders})'
         elif mode == "upsert":
             # Usar INSERT OR REPLACE do sqlite para chaves únicas / KEYS
             query = f'INSERT OR REPLACE INTO "{table_name}" ({col_names}) VALUES ({placeholders})'
