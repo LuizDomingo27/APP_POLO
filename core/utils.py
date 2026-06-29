@@ -14,7 +14,7 @@ Modulos especializados (edite-os diretamente para novas funcionalidades):
 - core/charts.py     — graficos ECharts (barras e linhas)
 - core/export.py     — exportacao Excel (.xlsx)
 """
-from core.charts import plot_bar, plot_line
+from core.charts import plot_bar, plot_bar_grouped, plot_line
 from core.data_prep import (
     apply_filters,
     clean_text_series,
@@ -54,6 +54,7 @@ __all__ = [
     "resolve_data_source",
     # charts
     "plot_bar",
+    "plot_bar_grouped",
     "plot_line",
     # export
     "build_grouped_summary",

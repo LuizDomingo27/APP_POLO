@@ -117,16 +117,17 @@ def build_grouped_summary(
 
 def to_excel_bytes_grouped(
     detail_df: pd.DataFrame,
-    date_col: str,
     oficina_col: str,
+    date_col: Optional[str] = None,
     int_cols: Optional[Iterable[str]] = None,
     float_cols: Optional[Iterable[str]] = None,
     summary_sheet: str = "Resumo Diario",
     detail_sheet: str = "Detalhado",
 ) -> bytes:
     """
-    Gera um .xlsx em memoria com duas abas:
-    - Resumo Diario: agrupado por Data+Oficina, linha TOTAL com formula SUM.
+    Gera um .xlsx em memoria com uma ou duas abas:
+    - Resumo Diario (so quando date_col for fornecido): agrupado por Data+Oficina,
+      linha TOTAL com formula SUM.
     - Detalhado: registro a registro igual ao exibido na tela.
     Retorna bytes prontos para st.download_button.
     """
@@ -134,49 +135,48 @@ def to_excel_bytes_grouped(
     float_cols = list(float_cols or [])
     sum_cols = int_cols + float_cols
 
-    summary_df = build_grouped_summary(detail_df, date_col, oficina_col, sum_cols)
-
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        # aba resumo
-        summary_df.to_excel(writer, index=False, sheet_name=summary_sheet)
-        ws_sum = writer.sheets[summary_sheet]
-        _apply_number_formats(
-            ws_sum, list(summary_df.columns),
-            date_cols=[date_col], int_cols=int_cols, float_cols=float_cols,
-        )
+        if date_col is not None:
+            summary_df = build_grouped_summary(detail_df, date_col, oficina_col, sum_cols)
 
-        # linha TOTAL com formulas SUM (auditavel no Excel)
-        total_row_idx = len(summary_df) + 2
-        header_map = {name: idx + 1 for idx, name in enumerate(summary_df.columns)}
-        ws_sum.cell(row=total_row_idx, column=1, value="TOTAL")
-        for col_name in sum_cols:
-            col_idx = header_map.get(col_name)
-            if not col_idx:
-                continue
-            col_letter = get_column_letter(col_idx)
-            ws_sum.cell(
-                row=total_row_idx, column=col_idx,
-                value=f"=SUM({col_letter}2:{col_letter}{total_row_idx - 1})",
-            )
-            ws_sum[f"{col_letter}{total_row_idx}"].number_format = (
-                "#,##0" if col_name in int_cols else "#,##0.00"
+            summary_df.to_excel(writer, index=False, sheet_name=summary_sheet)
+            ws_sum = writer.sheets[summary_sheet]
+            _apply_number_formats(
+                ws_sum, list(summary_df.columns),
+                date_cols=[date_col], int_cols=int_cols, float_cols=float_cols,
             )
 
-        _autosize_columns(ws_sum, summary_df)
-        _style_worksheet(
-            ws_sum,
-            n_data_rows=total_row_idx - 1,
-            n_cols=len(summary_df.columns),
-            total_row=total_row_idx,
-        )
+            total_row_idx = len(summary_df) + 2
+            header_map = {name: idx + 1 for idx, name in enumerate(summary_df.columns)}
+            ws_sum.cell(row=total_row_idx, column=1, value="TOTAL")
+            for col_name in sum_cols:
+                col_idx = header_map.get(col_name)
+                if not col_idx:
+                    continue
+                col_letter = get_column_letter(col_idx)
+                ws_sum.cell(
+                    row=total_row_idx, column=col_idx,
+                    value=f"=SUM({col_letter}2:{col_letter}{total_row_idx - 1})",
+                )
+                ws_sum[f"{col_letter}{total_row_idx}"].number_format = (
+                    "#,##0" if col_name in int_cols else "#,##0.00"
+                )
+
+            _autosize_columns(ws_sum, summary_df)
+            _style_worksheet(
+                ws_sum,
+                n_data_rows=total_row_idx - 1,
+                n_cols=len(summary_df.columns),
+                total_row=total_row_idx,
+            )
 
         # aba detalhada
         detail_df.to_excel(writer, index=False, sheet_name=detail_sheet)
         ws_det = writer.sheets[detail_sheet]
         _apply_number_formats(
             ws_det, list(detail_df.columns),
-            date_cols=[date_col], int_cols=int_cols, float_cols=float_cols,
+            date_cols=[date_col] if date_col else [], int_cols=int_cols, float_cols=float_cols,
         )
         _autosize_columns(ws_det, detail_df)
         _style_worksheet(ws_det, n_data_rows=len(detail_df), n_cols=len(detail_df.columns))
@@ -188,8 +188,8 @@ def to_excel_bytes_grouped(
 def download_button(
     df: pd.DataFrame,
     filename: str,
-    date_col: str,
     oficina_col: str,
+    date_col: Optional[str] = None,
     int_cols: Optional[Iterable[str]] = None,
     float_cols: Optional[Iterable[str]] = None,
     label: str = "Exportar Excel (resumo por dia/oficina + detalhado)",
@@ -200,8 +200,8 @@ def download_button(
         return
     data = to_excel_bytes_grouped(
         df,
-        date_col=date_col,
         oficina_col=oficina_col,
+        date_col=date_col,
         int_cols=int_cols,
         float_cols=float_cols,
     )

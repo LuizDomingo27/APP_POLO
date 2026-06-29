@@ -29,17 +29,16 @@ def inject_global_css() -> None:
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
         :root{
-            --bg-deep:#070D14;
-            --bg-base:#0B131C;
-            --surface:#101B26;
-            --surface-2:#16222F;
-            --accent:#2EE6C0;
-            --accent-soft:rgba(46,230,192,0.13);
-            --accent-border:rgba(46,230,192,0.30);
-            --accent-glow:rgba(46,230,192,0.16);
-            --text-main:#E7F1F0;
-            --text-muted:#7C95A0;
-            --danger:#FF6B6B;
+            --bg-base:#FFFFFF;
+            --surface:#F7FEFC;
+            --surface-2:#EDF9F5;
+            --accent:#18C99E;
+            --accent-soft:rgba(24,201,158,0.10);
+            --accent-border:rgba(24,201,158,0.30);
+            --accent-glow:rgba(24,201,158,0.12);
+            --text-main:#0D2B26;
+            --text-muted:#5E8B83;
+            --danger:#D93025;
             --radius-lg:18px;
             --radius-md:14px;
             --radius-sm:10px;
@@ -50,20 +49,20 @@ def inject_global_css() -> None:
         }
 
         .stApp{
-            background: radial-gradient(circle at 8% -10%, #0F2027 0%, var(--bg-base) 42%, var(--bg-deep) 100%);
+            background: var(--bg-base);
             color: var(--text-main);
         }
 
         section[data-testid="stSidebar"]{
-            background: var(--bg-deep);
-            border-right: 1px solid rgba(46,230,192,0.08);
+            background: var(--surface);
+            border-right: 1px solid var(--accent-border);
         }
 
         /* ---------- Header ---------- */
         .app-header{
             padding: 1.3rem 1.7rem;
             border-radius: var(--radius-lg);
-            background: linear-gradient(135deg, rgba(46,230,192,0.10), rgba(16,32,38,0.55));
+            background: linear-gradient(135deg, rgba(24,201,158,0.08), rgba(240,253,249,0.80));
             border: 1px solid var(--accent-border);
             margin-bottom: 1.1rem;
         }
@@ -79,6 +78,7 @@ def inject_global_css() -> None:
             color: var(--text-muted);
             margin:.35rem 0 0;
             font-size:.92rem;
+            line-height: 1.45;
         }
         .app-header .badge{
             display:inline-block;
@@ -99,13 +99,16 @@ def inject_global_css() -> None:
             font-weight:700;
             font-size:1.05rem;
             color: var(--text-main);
-            margin: 1.1rem 0 .55rem;
+            border-left: 3px solid var(--accent);
+            padding-left: .65rem;
+            margin: 1.5rem 0 .55rem;
         }
         .section-caption{
             color: var(--text-muted);
             font-size:.82rem;
             margin-top:-.4rem;
             margin-bottom:.8rem;
+            padding-left: .65rem;
         }
 
         /* ---------- Tabs ---------- */
@@ -123,36 +126,65 @@ def inject_global_css() -> None:
             box-shadow: 0 0 0 1px var(--accent-border) inset;
         }
         div[data-baseweb="tab-highlight"]{ background-color: var(--accent) !important; }
-        div[data-baseweb="tab-border"]{ background-color: rgba(255,255,255,0.04) !important; }
+        div[data-baseweb="tab-border"]{ background-color: rgba(0,0,0,0.06) !important; }
 
         /* ---------- KPI cards ---------- */
         .kpi-card{
-            background: linear-gradient(160deg, var(--surface), var(--surface-2));
-            border: 1px solid var(--accent-border);
+            background: #FFFFFF;
+            background-image: radial-gradient(ellipse 120% 90% at 50% -15%,
+                rgba(46,230,192,0.22) 0%,
+                rgba(46,230,192,0.06) 45%,
+                transparent 70%);
+            border: 1px solid rgba(46,230,192,0.35);
             border-radius: var(--radius-lg);
-            padding: 1.05rem 1.25rem;
-            box-shadow: 0 0 26px var(--accent-glow);
+            padding: 1.15rem 1.4rem 1.1rem 1.4rem;
+            box-shadow:
+                0 1px 4px rgba(0,0,0,0.04),
+                0 2px 16px rgba(46,230,192,0.06);
             height: 100%;
+            position: relative;
+            overflow: hidden;
+            transition: transform 160ms ease-out, box-shadow 160ms ease-out;
+            cursor: default;
+            -webkit-font-smoothing: antialiased;
         }
+        .kpi-card::before{ display:none; }
+        .kpi-card::after{ display:none; }
+        .kpi-card:hover{
+            transform: translateY(-2px);
+            box-shadow:
+                0 4px 20px rgba(0,0,0,0.07),
+                0 0 24px rgba(46,230,192,0.14);
+        }
+        .kpi-card:active{ transform: translateY(0px); }
         .kpi-label{
             font-family:'Inter', sans-serif;
             text-transform:uppercase;
             letter-spacing:.08em;
-            font-size:.70rem;
-            color: var(--text-muted);
+            font-size:.68rem;
+            color: #18C99E;
             font-weight:600;
+            display:flex;
+            align-items:center;
+            gap:.28rem;
+        }
+        .kpi-icon{
+            font-size:.72rem;
+            line-height:1;
+            color: #18C99E;
         }
         .kpi-value{
             font-family:'Sora', sans-serif;
-            font-size:1.85rem;
-            font-weight:700;
-            color: var(--accent);
-            margin-top:.22rem;
+            font-size:2.0rem;
+            font-weight:800;
+            color: #0D2B26;
+            margin-top:.28rem;
             line-height:1.15;
+            font-variant-numeric: tabular-nums;
         }
         .kpi-help{
-            font-size:.74rem;
-            color: var(--text-muted);
+            font-size:.75rem;
+            color: #18C99E;
             margin-top:.18rem;
         }
 
@@ -163,12 +195,12 @@ def inject_global_css() -> None:
             border: 1px solid var(--accent-border);
         }
 
-        /* ---------- Tabela HTML customizada (substitui st.dataframe) ---------- */
+        /* ---------- Tabela HTML customizada ---------- */
         .polo-table-wrap{
             overflow:auto;
             border-radius: var(--radius-md);
             border: 1px solid var(--accent-border);
-            box-shadow: 0 0 22px rgba(0,0,0,0.20);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
             margin-bottom: .4rem;
         }
         table.polo-table{
@@ -182,8 +214,8 @@ def inject_global_css() -> None:
             position:sticky;
             top:0;
             z-index:1;
-            background: linear-gradient(135deg, #132E2C, #101B26);
-            color: var(--accent);
+            background: linear-gradient(135deg, #D4F5EC, #EDF9F5);
+            color: #0A6B52;
             text-align:center;
             padding:.7rem .85rem;
             font-weight:700;
@@ -197,11 +229,11 @@ def inject_global_css() -> None:
             text-align:center;
             padding:.55rem .85rem;
             color: var(--text-main);
-            border-bottom:1px solid rgba(255,255,255,0.05);
+            border-bottom:1px solid rgba(0,0,0,0.05);
             white-space:nowrap;
         }
         table.polo-table tbody tr:nth-child(even){
-            background: rgba(46,230,192,0.04);
+            background: rgba(24,201,158,0.04);
         }
         table.polo-table tbody tr:hover td{
             background: var(--accent-soft);
@@ -216,7 +248,7 @@ def inject_global_css() -> None:
         }
         div[data-testid="stExpander"]{
             border-radius: var(--radius-md) !important;
-            border: 1px solid rgba(46,230,192,0.18) !important;
+            border: 1px solid var(--accent-border) !important;
             background: var(--surface);
         }
 
@@ -225,52 +257,23 @@ def inject_global_css() -> None:
             border-radius: var(--radius-sm) !important;
             border: 1px solid var(--accent-border) !important;
             background: var(--accent-soft) !important;
-            color: var(--accent) !important;
+            color: #0A6B52 !important;
             font-weight:600 !important;
             transition: all .15s ease;
         }
         .stButton>button:hover, .stDownloadButton>button:hover{
             background: var(--accent) !important;
-            color:#06151A !important;
+            color:#FFFFFF !important;
             border-color: var(--accent) !important;
         }
         div[data-baseweb="select"]>div, .stDateInput input, .stTextInput input{
             border-radius: var(--radius-sm) !important;
-            border-color: rgba(46,230,192,0.22) !important;
+            border-color: var(--accent-border) !important;
+            background: #FFFFFF !important;
         }
         div[data-baseweb="popover"]{ border-radius: var(--radius-md) !important; }
 
-        /* ---------- Misc ---------- */
-        hr{ border-color: rgba(46,230,192,0.12) !important; }
-        ::-webkit-scrollbar{ width:8px; height:8px; }
-        ::-webkit-scrollbar-thumb{ background: rgba(46,230,192,0.30); border-radius:8px; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
-        <style>
-        /* ── Design direction enhancements ──────────────────────────────── */
-
-        .section-title{
-            border-left: 3px solid var(--accent);
-            padding-left: .65rem;
-            margin-top: 1.5rem;
-        }
-        .section-caption{ padding-left: .65rem; }
-
-        .kpi-card{
-            border-bottom: 2px solid var(--accent) !important;
-            transition: transform .14s ease, box-shadow .14s ease;
-            cursor: default;
-        }
-        .kpi-card:hover{
-            transform: translateY(-3px);
-            box-shadow: 0 6px 36px var(--accent-glow);
-        }
-
+        /* ---------- Polo divider ---------- */
         .polo-divider{
             display: flex;
             align-items: center;
@@ -287,9 +290,10 @@ def inject_global_css() -> None:
             content: '';
             flex: 1;
             height: 1px;
-            background: rgba(46,230,192,0.14);
+            background: var(--accent-border);
         }
 
+        /* ---------- Sidebar ---------- */
         section[data-testid="stSidebar"] h3{
             font-family: 'Sora', sans-serif;
             font-size: .82rem;
@@ -298,7 +302,7 @@ def inject_global_css() -> None:
             margin-bottom: .4rem;
         }
         section[data-testid="stSidebar"] [data-testid="stFileUploader"]{
-            border: 1px dashed rgba(46,230,192,0.22);
+            border: 1px dashed var(--accent-border);
             border-radius: var(--radius-sm);
             padding: .35rem .5rem;
             margin-top: .3rem;
@@ -309,8 +313,14 @@ def inject_global_css() -> None:
             line-height: 1.5;
         }
 
+        /* ---------- Misc ---------- */
+        hr{ border-color: var(--accent-border) !important; }
+        ::-webkit-scrollbar{ width:6px; height:6px; }
+        ::-webkit-scrollbar-track{ background: var(--surface); }
+        ::-webkit-scrollbar-thumb{ background: var(--accent-border); border-radius:6px; }
+        ::-webkit-scrollbar-thumb:hover{ background: var(--accent); }
+
         div[data-testid="stTabsContent"]{ padding-top: .5rem; }
-        .app-header p{ line-height: 1.45; }
         .stPlotlyChart{ border-radius: var(--radius-md); overflow: hidden; }
         </style>
         """,
@@ -347,11 +357,17 @@ def section_divider(label: str = "") -> None:
 
 
 def kpi_card(label: str, value: str, help_text: Optional[str] = None) -> None:
+    """
+    Renderiza um cartao KPI com icone prefix, valor destacado e texto auxiliar.
+
+    Design: fundo branco com radial-gradient verde no topo, borda suave teal,
+    label em uppercase com icone, valor em texto escuro bold.
+    """
     help_html = f'<div class="kpi-help">{help_text}</div>' if help_text else ""
     st.markdown(
         f"""
         <div class="kpi-card">
-            <div class="kpi-label">{label}</div>
+            <div class="kpi-label"><span class="kpi-icon">&#10022;</span> {label}</div>
             <div class="kpi-value">{value}</div>
             {help_html}
         </div>

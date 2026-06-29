@@ -51,7 +51,7 @@ function fmtBR(v) {
 _TOOLTIP_FMT_JS = (
     "function(p) {"
     " var it=Array.isArray(p)?p[0]:p;"           # eixo 'axis' retorna array
-    " return '<span style=\"font-size:12px;color:#7C95A0\">'+it.name+'</span><br/>'"
+    " return '<span style=\"font-size:12px;color:#C8DCE0\">'+it.name+'</span><br/>'"
     "+'<span style=\"font-size:17px;font-weight:700;color:#2EE6C0\">'+fmtBR(it.value)+'</span>';"
     "}"
 )
@@ -111,7 +111,7 @@ def plot_bar(series: pd.Series, title: str = "", color: str = "#2EE6C0") -> None
         f"tooltip:{{trigger:'axis',axisPointer:{{type:'shadow'}},{_EC_TOOLTIP_COMMON},formatter:{_TOOLTIP_FMT_JS}}},"
         f"grid:{{left:0,right:0,top:56,bottom:0,containLabel:true}},"
         f"xAxis:{{type:'category',data:{cats},"
-        f"axisLabel:{{color:'#7C95A0',fontSize:11,rotate:{rotate},overflow:'truncate',width:80}},"
+        f"axisLabel:{{color:'#0D2B26',fontSize:11,rotate:{rotate},overflow:'truncate',width:80}},"
         f"axisLine:{{lineStyle:{{color:'rgba(124,149,160,0.25)'}}}},"
         f"axisTick:{{show:false}},splitLine:{{show:false}}}},"
         f"yAxis:{{type:'value',show:false,splitLine:{{show:false}}}},"
@@ -119,7 +119,7 @@ def plot_bar(series: pd.Series, title: str = "", color: str = "#2EE6C0") -> None
         f"itemStyle:{{color:{color_js},borderRadius:[5,5,0,0]}},"
         f"label:{{show:true,position:'top',"
         f"formatter:function(p){{return fmtBR(p.value);}},"
-        f"color:'#E7F1F0',fontSize:11,fontWeight:'600',fontFamily:'Inter, sans-serif'}},"
+        f"color:'#0D2B26',fontSize:11,fontWeight:'600',fontFamily:'Inter, sans-serif'}},"
         f"emphasis:{{itemStyle:{{color:'#5FECCC',shadowBlur:8,shadowColor:'rgba(46,230,192,0.4)'}}}},"
         f"barMaxWidth:64}}]"
         f"}};"
@@ -130,6 +130,73 @@ def plot_bar(series: pd.Series, title: str = "", color: str = "#2EE6C0") -> None
 # --------------------------------------------------------------------------- #
 # Grafico de linha com media movel
 # --------------------------------------------------------------------------- #
+def plot_bar_grouped(
+    df: pd.DataFrame,
+    title: str = "",
+    colors: list | None = None,
+    height: int = 380,
+) -> None:
+    """
+    Renderiza gráfico de barras agrupadas com múltiplas séries.
+
+    df: DataFrame com index = categorias (oficinas) e cada coluna = uma série.
+    colors: lista de hex, uma por coluna. Padrão: muted / laranja / accent.
+    """
+    if colors is None:
+        colors = ["#7C95A0", "#F4A261", "#2EE6C0"]
+
+    cats = _json.dumps([str(x) for x in df.index])
+    rotate = 30 if len(df) > 4 else 0
+    legend_data = _json.dumps([str(c) for c in df.columns])
+
+    series_parts: list[str] = []
+    for i, col in enumerate(df.columns):
+        vals = _json.dumps([float(v) if not pd.isna(v) else 0 for v in df[col]])
+        color = _json.dumps(colors[i % len(colors)])
+        name = _json.dumps(str(col))
+        series_parts.append(
+            f"{{type:'bar',name:{name},data:{vals},"
+            f"itemStyle:{{color:{color},borderRadius:[4,4,0,0]}},"
+            f"label:{{show:false}},"
+            f"emphasis:{{itemStyle:{{shadowBlur:8,shadowColor:'rgba(0,0,0,0.3)'}}}},"
+            f"barMaxWidth:28}}"
+        )
+
+    tooltip_fmt = (
+        "function(params){"
+        "var name=params[0].name;"
+        "var html='<span style=\"font-size:12px;color:#C8DCE0\">'+name+'</span><br/>';"
+        "params.forEach(function(p){"
+        "html+='<span style=\"display:inline-block;width:8px;height:8px;"
+        "border-radius:50%;background:'+p.color+';margin-right:5px\"></span>'"
+        "+'<span style=\"font-size:12px;color:#C8DCE0\">'+p.seriesName+'</span>'"
+        "+'<span style=\"font-size:15px;font-weight:700;color:'+p.color+';margin-left:8px\">'+"
+        "fmtBR(p.value)+'</span><br/>';"
+        "});"
+        "return html;}"
+    )
+
+    title_js = _json.dumps(title)
+    body = (
+        f"var option={{"
+        f"backgroundColor:'transparent',"
+        f"title:{{text:{title_js},textStyle:{_EC_TITLE_STYLE}}},"
+        f"legend:{{show:true,right:0,top:2,data:{legend_data},"
+        f"textStyle:{{color:'#0D2B26',fontSize:11,fontFamily:'Inter, sans-serif'}},"
+        f"itemWidth:14,itemHeight:8}},"
+        f"tooltip:{{trigger:'axis',axisPointer:{{type:'shadow'}},{_EC_TOOLTIP_COMMON},formatter:{tooltip_fmt}}},"
+        f"grid:{{left:0,right:0,top:52,bottom:0,containLabel:true}},"
+        f"xAxis:{{type:'category',data:{cats},"
+        f"axisLabel:{{color:'#0D2B26',fontSize:11,rotate:{rotate},overflow:'truncate',width:80}},"
+        f"axisLine:{{lineStyle:{{color:'rgba(124,149,160,0.25)'}}}},"
+        f"axisTick:{{show:false}},splitLine:{{show:false}}}},"
+        f"yAxis:{{type:'value',show:false,splitLine:{{show:false}}}},"
+        f"series:[{','.join(series_parts)}]"
+        f"}};"
+    )
+    _cv1.html(_echarts_wrap(body, height=height), height=height + 18, scrolling=False)
+
+
 def plot_line(series: pd.Series, title: str = "", color: str = "#2EE6C0", ma_window: int = 3) -> None:
     """
     Renderiza um grafico de linha com area preenchida + linha de media movel.
@@ -186,11 +253,11 @@ def plot_line(series: pd.Series, title: str = "", color: str = "#2EE6C0", ma_win
     tooltip_fmt = (
         "function(params){"
         "var name=params[0].name;"
-        "var html='<span style=\"font-size:12px;color:#7C95A0\">'+name+'</span><br/>';"
+        "var html='<span style=\"font-size:12px;color:#C8DCE0\">'+name+'</span><br/>';"
         "params.forEach(function(p){"
         "html+='<span style=\"display:inline-block;width:8px;height:8px;"
         "border-radius:50%;background:'+p.color+';margin-right:5px\"></span>'"
-        "+'<span style=\"font-size:12px;color:#7C95A0\">'+p.seriesName+'</span>'"
+        "+'<span style=\"font-size:12px;color:#C8DCE0\">'+p.seriesName+'</span>'"
         "+'<span style=\"font-size:15px;font-weight:700;color:'+p.color+';margin-left:8px\">'+"
         "fmtBR(p.value)+'</span><br/>';"
         "});"
@@ -203,12 +270,12 @@ def plot_line(series: pd.Series, title: str = "", color: str = "#2EE6C0", ma_win
         f"title:{{text:{title_js},left:0,top:0,textStyle:{_EC_TITLE_STYLE}}},"
         # legenda discreta no canto superior direito
         f"legend:{{show:true,right:0,top:2,"
-        f"textStyle:{{color:'#7C95A0',fontSize:11,fontFamily:'Inter, sans-serif'}},"
+        f"textStyle:{{color:'#0D2B26',fontSize:11,fontFamily:'Inter, sans-serif'}},"
         f"itemWidth:14,itemHeight:3}},"
         f"tooltip:{{trigger:'axis',{_EC_TOOLTIP_COMMON},formatter:{tooltip_fmt}}},"
         f"grid:{{left:0,right:0,top:52,bottom:0,containLabel:true}},"
         f"xAxis:{{type:'category',data:{cats},boundaryGap:false,"
-        f"axisLabel:{{color:'#7C95A0',fontSize:11,rotate:{rotate}}},"
+        f"axisLabel:{{color:'#0D2B26',fontSize:11,rotate:{rotate}}},"
         f"axisLine:{{lineStyle:{{color:'rgba(124,149,160,0.25)'}}}},"
         f"axisTick:{{show:false}},splitLine:{{show:false}}}},"
         f"yAxis:{{type:'value',show:false,splitLine:{{show:false}}}},"
